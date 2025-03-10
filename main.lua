@@ -1,4 +1,5 @@
 local api = require("api")
+local base64 = require('cant_read/base64/rfc')
 
 local cant_read_addon = {
 	name = "Can't Read",
@@ -26,6 +27,38 @@ local function split(s, sep)
     string.gsub(s, pattern, function(c) fields[#fields + 1] = c end)
     
     return fields
+end
+-- Base 64 helper functions
+local b='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+-- working lua base64 codec (c) 2006-2008 by Alex Kloss
+-- encoding
+function enc(data)
+    return ((data:gsub('.', function(x) 
+        local r,b='',x:byte()
+        for i=8,1,-1 do r=r..(b%2^i-b%2^(i-1)>0 and '1' or '0') end
+        return r;
+    end)..'0000'):gsub('%d%d%d?%d?%d?%d?', function(x)
+        if (#x < 6) then return '' end
+        local c=0
+        for i=1,6 do c=c+(x:sub(i,i)=='1' and 2^(6-i) or 0) end
+        return b:sub(c+1,c+1)
+    end)..({ '', '==', '=' })[#data%3+1])
+end
+
+-- decoding
+function dec(data)
+    data = string.gsub(data, '[^'..b..'=]', '')
+    return (data:gsub('.', function(x)
+        if (x == '=') then return '' end
+        local r,f='',(b:find(x)-1)
+        for i=6,1,-1 do r=r..(f%2^i-f%2^(i-1)>0 and '1' or '0') end
+        return r;
+    end):gsub('%d%d%d?%d?%d?%d?%d?%d?', function(x)
+        if (#x ~= 8) then return '' end
+        local c=0
+        for i=1,8 do c=c+(x:sub(i,i)=='1' and 2^(8-i) or 0) end
+        return string.char(c)
+    end))
 end
 local function sendDecoratedChatByChannel(message, sender, channel)
     -- TODO: Switch to using X2Locale:LocalizeUiText once available
@@ -106,10 +139,10 @@ local function readLatestTranslatedMessage()
         local messageInfo = split(message.chatMsg, ";;;")
         -- api.Log:Info("Channel: " .. tostring(messageInfo[1]))
         -- api.Log:Info("Name: " .. tostring(messageInfo[2]))
-        -- api.Log:Info("Message: " .. tostring(messageInfo[3]))
+        
         local channelNumber = tonumber(messageInfo[1])
-        -- api.Log:Info(message)
-        sendDecoratedChatByChannel(messageInfo[3], messageInfo[2], messageInfo[1])
+        -- api.Log:Info(dec(messageInfo[3]))
+        sendDecoratedChatByChannel(dec(messageInfo[3]), messageInfo[2], messageInfo[1])
         -- X2Chat:DispatchChatMessage(channelNumber, messageInfo[3])
         api.File:Write("cant_read/translated_messages", {})
     end 
@@ -124,6 +157,7 @@ end
 
 local function OnLoad()
 	local settings = api.GetSettings("cant_read")
+    base64 = require('cant_read/base64/rfc')
 
 	cantReadWindow = api.Interface:CreateEmptyWindow("cantReadWindow", "UIParent")
 
@@ -136,7 +170,9 @@ local function OnLoad()
 	end
 	cantReadWindow:SetHandler("OnEvent", cantReadWindow.OnEvent)
 	cantReadWindow:RegisterEvent("CHAT_MESSAGE")
-
+    -- value1= dec("RgNC40LLQtdGC")
+    -- api.Log:Info(dec("7Jqw66as6rCAIOyWuOuNlSDsnITsl5Ag7IK06riwIOuVjOusuOyXkCDslYjsoITtlZwg6rKDIOqwmeyVhOyalCA6IHg="))
+    -- api.Log:Info("7Jqw66as6rCAIOyWuOuNlSDsnITsl5Ag7IK06riwIOuVjOusuOyXkCDslYjsoITtlZwg6rKDIOqwmeyVhOyalCA6IHg=")
     api.On("UPDATE", OnUpdate)
 	api.SaveSettings()
 end

@@ -1,3 +1,3 @@
 {
-    chatMsg = "||||6||||Dark||||ive got 9k||||",
+    chatMsg = "||||6||||Bellybutton||||x combo||||",
 }

@@ -29,17 +29,22 @@ function TranslateAndLog {
 
 	$translation = translateThisGoogle -translate $lang -text $encodedMessage
     if ($translation -eq "") { return }
+    Write-Host $encodedMessage
     Write-Host $translation
-	# $translation = [System.Web.HttpUtility]::UrlDecode($translation)
-
+	
+    
 	if ($translation.Trim() -eq ($cleanMessage -replace "\+" , " ").Trim()) {
 		return
 	}
-
-	$finalMessage = $prefix + $translation
+    # base64 encode 
+    $translation = [System.Web.HttpUtility]::UrlDecode($translation)
+    $translationBytes = [System.Text.Encoding]::UTF8.GetBytes($translation)
+    $translation = [Convert]::ToBase64String($translationBytes)
+	$finalMessage = $prefix + $translation  
+    
     
 	$logEntry = "{ chatMsg = `"$("$finalMessage".Trim())`" }"
-    Write-Host $logEntry
+    # Write-Host $translation
 	try {
 		Set-Content -Path $logFilePath -Value $logEntry -ErrorAction Stop
 	} catch {
