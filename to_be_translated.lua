@@ -1,3 +1,3 @@
 {
-    chatMsg = "||||6||||Bellybutton||||x combo||||",
+    chatMsg = "||||-2||||DAILY_MSG||||Good-bye!||||",
 }

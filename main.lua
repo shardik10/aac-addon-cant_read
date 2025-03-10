@@ -12,13 +12,8 @@ local cantReadWindow
 
 local clockTimer = 0
 local clockResetTime = 100
-
-local function writeChatToTranslatingFile(channel, unit, isHostile, name, message, speakerInChatBound, specifyName, factionName, trialPosition)
-    if name ~= nil then 
-        -- api.Log:Info("||||"..name.."||||"..message.."||||"..tostring(channel).."||||")
-        api.File:Write("cant_read/to_be_translated.lua", {chatMsg=tostring"||||"..(channel).."||||"..name.."||||"..message.."||||"})
-    end 
-end 
+-- Base64 encoding alphabet
+local b = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
 local function split(s, sep)
     local fields = {}
     
@@ -28,8 +23,39 @@ local function split(s, sep)
     
     return fields
 end
+local function itemIdFromItemLinkText(itemLinkText)
+    local itemIdStr = string.sub(itemLinkText, 3)
+    itemIdStr = split(itemIdStr, ",")
+    itemIdStr = itemIdStr[1]
+    return itemIdStr
+end 
+
+local function writeChatToTranslatingFile(channel, unit, isHostile, name, message, speakerInChatBound, specifyName, factionName, trialPosition)
+    if name ~= nil and #message > 2 then
+        -- Skip messages beginning with x and a space (looking for raid invites)
+        if string.sub(message, 1, 1) == "x" and string.sub(message, 2, 2) == " " then return end  
+        -- Replace item link text with the item's name
+        local cleanedMessage = message
+        while string.find(cleanedMessage, "|i") do 
+            local beginIndex, _ = string.find(cleanedMessage, "|i")
+            local _, endIndex = string.find(cleanedMessage, '0;')
+            if beginIndex ~= nil and endIndex ~= nil then 
+                local itemLinkText = string.sub(cleanedMessage, beginIndex, endIndex)
+                local itemId = itemIdFromItemLinkText(itemLinkText)
+                local itemInfo = api.Item:GetItemInfoByType(tonumber(itemId))
+                
+                local beforeLink = string.sub(cleanedMessage, 0, beginIndex)
+                local afterLink = string.sub(cleanedMessage, endIndex + 1, #cleanedMessage)
+                cleanedMessage = beforeLink .. "" .. itemInfo.name .. " " .. afterLink 
+            end 
+        end 
+        cleanedMessage = string.gsub(cleanedMessage, "%|", "")
+        
+        api.File:Write("cant_read/to_be_translated.lua", {chatMsg=tostring"||||"..(channel).."||||"..name.."||||"..cleanedMessage.."||||"})
+    end 
+end 
+
 -- Base 64 helper functions
-local b='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
 -- working lua base64 codec (c) 2006-2008 by Alex Kloss
 -- encoding
 function enc(data)
@@ -62,7 +88,7 @@ function dec(data)
 end
 local function sendDecoratedChatByChannel(message, sender, channel)
     -- TODO: Switch to using X2Locale:LocalizeUiText once available
-    local prefix = "[Cant Read] -> "
+    local prefix = " -> "
     if tostring(channel) == "-3" then 
         -- Incoming Whispers CMF_WHISPER
         local formatted = prefix .. sender .. " to you: " .. message
