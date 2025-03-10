@@ -8,5 +8,10 @@ Currently supported languages:
 - Français (français.bat)
 - Português (português.bat)
 - Deutsch (deutsch.bat)
-
+- 한국어 (한국어.bat)
+- русский (русский.bat)
+- 中国人 (中国人.bat)
+- espanol (espanol.bat)
+- svenska (svenska.bat)
+- nederlands (nederlands.bat)
 ## You must go to your Documents/AAClassic/Addon/cant_read folder and launch your target language's batch file. This window must stay open while you are playing for translations to come through.
