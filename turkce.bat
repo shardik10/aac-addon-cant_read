@@ -1,5 +1,5 @@
 @echo off
-set LANG=en
+set LANG=tr
 
 :START
 echo Cant Read background translator is now running. Translations will begin appearing in game.
