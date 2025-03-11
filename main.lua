@@ -56,6 +56,13 @@ local function writeChatToTranslatingFile(channel, unit, isHostile, name, messag
 end 
 
 -- Base 64 helper functions
+-- This code was presented to me by the one and only Delarme.
+--  Delarme saved me from a pretty fucking serious mental health episode
+--  before the following code enlightened me on how to take UTF8 bullshit
+--  languages like the glorious Hangul and Ruski ones and turn them into
+--  strings that the game can read. I owe not only my full head of hair
+--  to Delarme, but also my cat's life. Because who knows what I would've
+--  done to everything I love if this code was not implemented.
 -- working lua base64 codec (c) 2006-2008 by Alex Kloss
 -- encoding
 function enc(data)
@@ -196,9 +203,7 @@ local function OnLoad()
 	end
 	cantReadWindow:SetHandler("OnEvent", cantReadWindow.OnEvent)
 	cantReadWindow:RegisterEvent("CHAT_MESSAGE")
-    -- value1= dec("RgNC40LLQtdGC")
-    -- api.Log:Info(dec("7Jqw66as6rCAIOyWuOuNlSDsnITsl5Ag7IK06riwIOuVjOusuOyXkCDslYjsoITtlZwg6rKDIOqwmeyVhOyalCA6IHg="))
-    -- api.Log:Info("7Jqw66as6rCAIOyWuOuNlSDsnITsl5Ag7IK06riwIOuVjOusuOyXkCDslYjsoITtlZwg6rKDIOqwmeyVhOyalCA6IHg=")
+
     api.On("UPDATE", OnUpdate)
 	api.SaveSettings()
 end
