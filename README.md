@@ -14,4 +14,5 @@ Currently supported languages:
 - espanol (espanol.bat)
 - svenska (svenska.bat)
 - nederlands (nederlands.bat)
+- turkce (turkce.bat)
 ## You must go to your Documents/AAClassic/Addon/cant_read folder and launch your target language's batch file. This window must stay open while you are playing for translations to come through.
