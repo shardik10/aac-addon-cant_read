@@ -36,7 +36,8 @@ local function writeChatToTranslatingFile(channel, unit, isHostile, name, messag
         if string.sub(message, 1, 1) == "x" and string.sub(message, 2, 2) == " " then return end  
         -- Replace item link text with the item's name
         local cleanedMessage = message
-        while string.find(cleanedMessage, "|i") do 
+        count = 0
+        while string.find(cleanedMessage, "|i") and count > 5 do 
             local beginIndex, _ = string.find(cleanedMessage, "|i")
             local _, endIndex = string.find(cleanedMessage, '0;')
             if beginIndex ~= nil and endIndex ~= nil then 
@@ -48,9 +49,9 @@ local function writeChatToTranslatingFile(channel, unit, isHostile, name, messag
                 local afterLink = string.sub(cleanedMessage, endIndex + 1, #cleanedMessage)
                 cleanedMessage = beforeLink .. "" .. itemInfo.name .. " " .. afterLink 
             end 
+            count = count + 1
         end 
         cleanedMessage = string.gsub(cleanedMessage, "%|", "")
-        
         api.File:Write("cant_read/to_be_translated.lua", {chatMsg=tostring"||||"..(channel).."||||"..name.."||||"..cleanedMessage.."||||"})
     end 
 end 
@@ -167,6 +168,7 @@ local function sendDecoratedChatByChannel(message, sender, channel)
 end
 local function readLatestTranslatedMessage()
     local message = api.File:Read("cant_read/translated_messages")
+    if message == nil then return end
     if message.chatMsg ~= nil then 
         -- api.Log:Info(tostring(message.chatMsg))
         local messageInfo = split(message.chatMsg, ";;;")
@@ -182,8 +184,8 @@ local function readLatestTranslatedMessage()
 end 
 local function OnUpdate(dt)
     if clockTimer + dt > clockResetTime then
-        readLatestTranslatedMessage()
 		clockTimer = 0	
+        readLatestTranslatedMessage()
     end 
     clockTimer = clockTimer + dt
 end 
