@@ -16,3 +16,12 @@ Currently supported languages:
 - nederlands (nederlands.bat)
 - turkce (turkce.bat)
 ## You must go to your Documents/AAClassic/Addon/cant_read folder and launch your target language's batch file. This window must stay open while you are playing for translations to come through.
+
+### Text-to-Speech Playback
+To hear chat messages spoken aloud, run `tts.bat` with an optional voice name:
+
+```
+tts.bat Ash
+```
+
+Only local, whisper, party, nation, family and faction chats are sent to the TTS server.
