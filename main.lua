@@ -31,6 +31,16 @@ local function itemIdFromItemLinkText(itemLinkText)
 end 
 
 local function writeChatToTranslatingFile(channel, unit, isHostile, name, message, speakerInChatBound, specifyName, factionName, trialPosition)
+    -- Only handle chat from whisper, local, party, nation, family and faction
+    local allowedChannels = {
+        ["-3"] = true, -- whisper
+        ["0"]  = true, -- local
+        ["4"]  = true, -- party
+        ["6"]  = true, -- nation
+        ["9"]  = true, -- family
+        ["14"] = true  -- faction
+    }
+    if not allowedChannels[tostring(channel)] then return end
     if name ~= nil and #message > 2 then
         -- Skip messages beginning with x and a space (looking for raid invites)
         if string.sub(message, 1, 1) == "x" and string.sub(message, 2, 2) == " " then return end  
