@@ -4,6 +4,7 @@ if "%VOICE%"=="" set VOICE=Ash
 
 :START
 echo Cant Read TTS playback is now running.
+echo Chat log will be saved to log.txt.
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "scripts/tts_play.ps1" -voice "%VOICE%"
 if %ERRORLEVEL% NEQ 0 (
     echo An error has been encountered, attempting to restart...
