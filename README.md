@@ -25,3 +25,30 @@ tts.bat Ash
 ```
 
 Only local, whisper, party, nation, family and faction chats are sent to the TTS server.
+
+## Log Format & Settings
+
+Every chat message is recorded before any filtering into a daily log file.
+Each line uses a tab-separated format:
+
+```
+<iso8601_utc>\t<channel>\t<speaker>\t<message>
+```
+
+Tabs and newlines inside messages are escaped as `\t` and `\n`. Logs are
+written in UTF-8 without BOM under `cant_read/ChatLog-YYYY-MM-DD.txt`.
+
+Logging options live in `config.lua`:
+
+```lua
+Log = {
+  Dir = "cant_read",
+  RotateDaily = true,
+  AllChannels = true,
+  Encoding = "utf8",
+  Debug = false,
+}
+```
+
+When `AllChannels` is false the addon falls back to its legacy allowlist.
+`Debug` mirrors events and stats to `ChatLog-Debug.txt`.
