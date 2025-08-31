@@ -1,5 +1,7 @@
 local api = require("api")
 local base64 = require('cant_read/base64/rfc')
+local config = require('cant_read/config')
+local logger = require('cant_read/logger')
 
 local cant_read_addon = {
 	name = "Can't Read",
@@ -30,41 +32,71 @@ local function itemIdFromItemLinkText(itemLinkText)
     return itemIdStr
 end 
 
+local channelNames = {
+    ["-3"] = "Whisper",
+    ["-2"] = "System",
+    ["-1"] = "Notice",
+    ["0"]  = "Say",
+    ["1"]  = "Shout",
+    ["2"]  = "Trade",
+    ["3"]  = "FindParty",
+    ["4"]  = "Party",
+    ["5"]  = "Raid",
+    ["6"]  = "Nation",
+    ["7"]  = "Guild",
+    ["8"]  = "Alliance",
+    ["9"]  = "Family",
+    ["10"] = "Command",
+    ["11"] = "Trial",
+    ["12"] = "Emote",
+    ["14"] = "Faction",
+}
+
 local function writeChatToTranslatingFile(channel, unit, isHostile, name, message, speakerInChatBound, specifyName, factionName, trialPosition)
-    -- Only handle chat from whisper, local, party, nation, family and faction
+    local channelStr = channelNames[tostring(channel)] or tostring(channel)
+    logger.log(channelStr, name or "", message or "")
+
     local allowedChannels = {
-        ["-3"] = true, -- whisper
-        ["0"]  = true, -- local
-        ["4"]  = true, -- party
-        ["6"]  = true, -- nation
-        ["9"]  = true, -- family
-        ["14"] = true  -- faction
+        ["-3"] = true,
+        ["0"]  = true,
+        ["4"]  = true,
+        ["6"]  = true,
+        ["9"]  = true,
+        ["14"] = true
     }
-    if not allowedChannels[tostring(channel)] then return end
+
+    if not config.Log.AllChannels and not allowedChannels[tostring(channel)] then
+        logger.debug("FILTER would-drop: reason=ChannelNotAllowed", channelStr, name, message)
+        return
+    end
+
     if name ~= nil and #message > 2 then
-        -- Skip messages beginning with x and a space (looking for raid invites)
-        if string.sub(message, 1, 1) == "x" and string.sub(message, 2, 2) == " " then return end  
-        -- Replace item link text with the item's name
+        if string.sub(message, 1, 1) == "x" and string.sub(message, 2, 2) == " " then
+            logger.debug("FILTER would-drop: reason=RaidInvite", channelStr, name, message)
+            return
+        end
         local cleanedMessage = message
         count = 0
-        while string.find(cleanedMessage, "|i") and count > 5 do 
+        while string.find(cleanedMessage, "|i") and count > 5 do
             local beginIndex, _ = string.find(cleanedMessage, "|i")
             local _, endIndex = string.find(cleanedMessage, '0;')
-            if beginIndex ~= nil and endIndex ~= nil then 
+            if beginIndex ~= nil and endIndex ~= nil then
                 local itemLinkText = string.sub(cleanedMessage, beginIndex, endIndex)
                 local itemId = itemIdFromItemLinkText(itemLinkText)
                 local itemInfo = api.Item:GetItemInfoByType(tonumber(itemId))
-                
+
                 local beforeLink = string.sub(cleanedMessage, 0, beginIndex)
                 local afterLink = string.sub(cleanedMessage, endIndex + 1, #cleanedMessage)
-                cleanedMessage = beforeLink .. "" .. itemInfo.name .. " " .. afterLink 
-            end 
+                cleanedMessage = beforeLink .. "" .. itemInfo.name .. " " .. afterLink
+            end
             count = count + 1
-        end 
+        end
         cleanedMessage = string.gsub(cleanedMessage, "%|", "")
         api.File:Write("cant_read/to_be_translated.lua", {chatMsg=tostring"||||"..(channel).."||||"..name.."||||"..cleanedMessage.."||||"})
-    end 
-end 
+    else
+        logger.debug("FILTER would-drop: reason=EmptyMessage", channelStr, name, message)
+    end
+end
 
 -- Base 64 helper functions
 -- This code was presented to me by the one and only Delarme.
