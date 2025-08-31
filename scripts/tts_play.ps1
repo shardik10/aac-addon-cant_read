@@ -12,7 +12,8 @@ function Send-TTS {
     )
     $payload = @{ text = $textToSpeak; voice = $voice } | ConvertTo-Json
     try {
-        $resp = Invoke-WebRequest -Uri "$baseUrl/tts_clone" -Method Post -Body $payload -ContentType "application/json"
+        $utf8Body = [System.Text.Encoding]::UTF8.GetBytes($payload)
+        $resp = Invoke-WebRequest -Uri "$baseUrl/tts_clone" -Method Post -Body $utf8Body -ContentType "application/json; charset=utf-8"
         $tmp = [System.IO.Path]::ChangeExtension([System.IO.Path]::GetTempFileName(), '.wav')
         [System.IO.File]::WriteAllBytes($tmp, $resp.Content)
         $player = New-Object System.Media.SoundPlayer $tmp
